@@ -1,0 +1,56 @@
+{
+  "name": "light-zoom",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {
+    "dev": "webpack-dev-server --config ./build/webpack.dev.conf.js",
+    "build": "webpack --config ./build/webpack.build.conf.js",
+    "lint": "tslint -c tslint.json -o ./tslint_logs.txt 'src/**/*.ts'"
+  },
+  "prettier": {
+    "trailingComma": "es5",
+    "tabWidth": 2,
+    "semi": true,
+    "singleQuote": true
+  },
+  "browserslist": [
+    "> 1%",
+    "last 3 version"
+  ],
+  "author": {
+    "name": "Robert",
+    "email": "dev@it-portfolio.ru",
+    "url": "https://github.com/loveCamel"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.7.2",
+    "@babel/plugin-proposal-class-properties": "^7.4.4",
+    "@babel/plugin-proposal-decorators": "^7.4.4",
+    "@babel/plugin-transform-react-jsx": "^7.3.0",
+    "@babel/preset-env": "^7.7.1",
+    "autoprefixer": "^9.7.1",
+    "babel-loader": "^8.0.6",
+    "css-loader": "^3.2.0",
+    "css-mqpacker": "^7.0.0",
+    "cssnano": "^4.1.10",
+    "file-loader": "^4.2.0",
+    "html-webpack-plugin": "^3.2.0",
+    "less": "^3.10.3",
+    "less-loader": "^5.0.0",
+    "mini-css-extract-plugin": "^0.8.0",
+    "path": "^0.12.7",
+    "postcss-loader": "^3.0.0",
+    "source-map-loader": "^0.2.4",
+    "style-loader": "^1.0.0",
+    "ts-loader": "^6.2.1",
+    "tslint": "^5.20.1",
+    "typescript": "^3.7.2",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.9.0",
+    "webpack-merge": "^4.2.2"
+  },
+  "dependencies": {}
+}
