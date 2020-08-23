@@ -3,6 +3,8 @@ export interface ILightZoomOptions {
   isFix?: boolean;
   isCursorPointer?: boolean;
   isOutsideClose?: boolean;
+  bgColor?: string;
+  bgOpacity?: number;
 }
 
 export interface ILightZoom {
@@ -25,10 +27,12 @@ enum Key {
 /**
  * LightZoom - модуль для зума изображений в модальном окне.
  * @param {Object} props - Необязательные параметры.
- * @param {string} props.selector - Селектор, по которому будет идти поиск.
- * @param {boolean} props.isFix - Запрещать ли скролл при открытии модального окна.
- * @param {boolean} props.isCursorPointer - Будет ли иконка зума при наведении на картинки.
- * @param {boolean} props.isOutsideClose - Будет ли модальное окно закрываться при клике вне картинки.
+ * @param {String} props.selector - Селектор, по которому будет идти поиск.
+ * @param {Boolean} props.isFix - Запрещать ли скролл при открытии модального окна.
+ * @param {Boolean} props.isCursorPointer - Будет ли иконка зума при наведении на картинки.
+ * @param {Boolean} props.isOutsideClose - Будет ли модальное окно закрываться при клике вне картинки.
+ * @param {String} props.bgColor - Цвет фона(подложки) модального окна.
+ * @param {Number} props.bgOpacity - Прозрачность фона(подложки) модального окна.
  */
 class LightZoom implements ILightZoom {
   private _selector: string;
@@ -42,6 +46,10 @@ class LightZoom implements ILightZoom {
   private _close: HTMLElement;
   private _modalLayout: HTMLElement;
   private _imgModal: HTMLImageElement;
+  private _bgSettings: {
+    bgColor?: string;
+    bgOpacity?: number;
+  };
 
   constructor(props: ILightZoomOptions = {}) {
     this._selector = props.selector || 'img';
@@ -55,6 +63,9 @@ class LightZoom implements ILightZoom {
     this._modalLayout = wrap;
     this._imgModal = imgModal;
     this._startZoom();
+    if (props.bgColor || props.bgOpacity) {
+      this._initCustomBg(props);
+    }
   }
 
   /**
@@ -81,7 +92,44 @@ class LightZoom implements ILightZoom {
   }
 
   /**
+   * Метод инициализирует кастомный фон у модального окна.
+   * @private
+   */
+  private _initCustomBg = (props: ILightZoomOptions): void => {
+    const bgColor = props.bgColor || '#ffffff';
+    const bgOpacity = this._getValideOpacity(props.bgOpacity);
+    this._bgSettings = { bgColor, bgOpacity };
+    const valideColor = this._hexToRGBA(bgColor, bgOpacity);
+    this._modal.style.background = valideColor;
+  }
+
+  /**
+   * Метод возвращает валидную прозрачность.
+   * @returns {Number} Валидная прозрачность, пример: 0.8
+   * @private
+   */
+  private _getValideOpacity = (opacity: number): number => {
+    const defaultOpacity = 0.8;
+    const isInt = Number.isInteger(opacity);
+    const isValideRange = opacity <= 100 && opacity >= 0;
+    return isInt && isValideRange ? opacity / 100 : defaultOpacity;
+  }
+
+  /**
+   * Метод конвертирует цвет из hex и прозрачности в формат RGBA.
+   * @returns {String} Валидный цвет в формате RGBA.
+   * @private
+   */
+  private _hexToRGBA = (hex: string, opacity: number): string => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  }
+
+  /**
    * Метод проверяет валидность изображений.
+   * @returns {Boolean} true если у всех изображений есть непустой атрибут src.
    * @private
    */
   private _isValideImgs = (): boolean => {
@@ -141,6 +189,7 @@ class LightZoom implements ILightZoom {
 
   /**
    * Метод определяет, является ли текущий елемент изображением в модальном окне.
+   * @returns {Boolean} true если текущий елемент это изображение в модальном окне.
    * @private
    */
   private _isClickOnImg = (target: HTMLElement): boolean => {

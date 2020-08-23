@@ -7,7 +7,9 @@
   display: none;
   justify-content: center;
   align-items: center;
-  background: @background;
+  
+  // Стандартное значение, если через js передана неверная строка
+  background: rgba(255, 255, 255, .8);
   z-index: 5;
 
   &.LightZoom__active {
