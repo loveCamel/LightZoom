@@ -20,7 +20,7 @@ module.exports = {
     app: PATHS.src
   },
   output: {
-    filename: `${PATHS.assets}js/[name].js`,
+    filename: `${PATHS.assets}js/LightZoom.js`,
     path: PATHS.dist,
     publicPath: '/'
   },
@@ -114,7 +114,7 @@ module.exports = {
   },
   plugins: [
     new MiniCssExtractPlugin({
-      filename: `${PATHS.assets}css/[name].css`,
+      filename: `${PATHS.assets}css/LightZoom.css`,
     }),
     ...pages.map(page => new HtmlWebpackPlugin({
       template: `${PATHS.src}/${page}`,

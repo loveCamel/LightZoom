@@ -1,7 +1,8 @@
 export interface ILightZoomOptions {
-  dataName?: string;
+  selector?: string;
   isFix?: boolean;
   isCursorPointer?: boolean;
+  isOutsideClose?: boolean;
 }
 
 export interface ILightZoom {
@@ -12,6 +13,7 @@ export interface ILightZoom {
 interface IModalElements {
   modal: HTMLElement;
   close: HTMLElement;
+  wrap: HTMLElement;
   imgModal: HTMLImageElement;
 }
 
@@ -23,29 +25,34 @@ enum Key {
 /**
  * LightZoom - модуль для зума изображений в модальном окне.
  * @param {Object} props - Необязательные параметры.
- * @param {string} props.dataName - Имя data атрибута, по которому будет идти поиск.
+ * @param {string} props.selector - Селектор, по которому будет идти поиск.
  * @param {boolean} props.isFix - Запрещать ли скролл при открытии модального окна.
  * @param {boolean} props.isCursorPointer - Будет ли иконка зума при наведении на картинки.
+ * @param {boolean} props.isOutsideClose - Будет ли модальное окно закрываться при клике вне картинки.
  */
 class LightZoom implements ILightZoom {
-  private _dataName: string;
+  private _selector: string;
   private _imgs: NodeListOf<Element>;
   private _isFix: boolean;
   private _isCursorPointer: boolean;
+  private _isOutsideClose: boolean;
   private _activeClass: string = 'LightZoom__active';
   private _bodyFixClass: string = 'LightZoom__overflow';
   private _modal: HTMLElement;
   private _close: HTMLElement;
+  private _modalLayout: HTMLElement;
   private _imgModal: HTMLImageElement;
 
   constructor(props: ILightZoomOptions = {}) {
-    this._dataName = props.dataName || 'zoom';
-    this._imgs = document.querySelectorAll(`img[data-${this._dataName}]`);
+    this._selector = props.selector || 'img';
+    this._imgs = document.querySelectorAll(`${this._selector}`);
     this._isFix = props.isFix;
     this._isCursorPointer = props.isCursorPointer;
-    const { modal, close, imgModal } = this._initHtml();
+    this._isOutsideClose = props.isOutsideClose;
+    const { modal, close, wrap, imgModal } = this._initHtml();
     this._modal = modal;
     this._close = close;
+    this._modalLayout = wrap;
     this._imgModal = imgModal;
     this._startZoom();
   }
@@ -67,12 +74,15 @@ class LightZoom implements ILightZoom {
       item.removeEventListener('click', this._onImgClick)
     );
     this._close.removeEventListener('click', this._onCloseClick);
+    if (this._isOutsideClose) {
+      this._modalLayout.removeEventListener('click', this._onCloseClick);
+    }
     document.body.removeEventListener('keydown', this._onKeyClose);
   }
 
   /**
    * Метод проверяет валидность изображений.
-   * @privat
+   * @private
    */
   private _isValideImgs = (): boolean => {
     return Array.from(this._imgs).every((item) => {
@@ -86,7 +96,7 @@ class LightZoom implements ILightZoom {
   /**
    * Метод создаёт разметку и помещает её внутрь body.
    * @returns {Object} Объект из DOM элементов
-   * @privat
+   * @private
    */
   private _initHtml = (): IModalElements => {
     const modal = document.createElement('div'),
@@ -104,14 +114,14 @@ class LightZoom implements ILightZoom {
     modal.appendChild(wrap);
     document.body.appendChild(modal);
 
-    return { modal, close, imgModal };
+    return { modal, close, wrap, imgModal };
   }
 
   /**
    * Метод для старта работы LightZoom.
    * Вешает обработчики событий и нужные классы.
    * Если изображения не валидны, кидает ошибку и прекращает работу
-   * @privat
+   * @private
    */
   private _startZoom = (): void => {
     if (this._isValideImgs()) {
@@ -121,14 +131,25 @@ class LightZoom implements ILightZoom {
       });
 
       this._close.addEventListener('click', this._onCloseClick);
+      if (this._isOutsideClose) {
+        this._modalLayout.addEventListener('click', this._onCloseClick);
+      }
     } else {
-      console.error(`LightZoom: No src in data-${this._dataName} elements`);
+      console.error(`LightZoom: No src in "${this._selector}" selector`);
     }
   }
 
   /**
+   * Метод определяет, является ли текущий елемент изображением в модальном окне.
+   * @private
+   */
+  private _isClickOnImg = (target: HTMLElement): boolean => {
+    return target === this._imgModal;
+  }
+
+  /**
    * Обработчик события по клику на картинку.
-   * @privat
+   * @private
    */
   private _onImgClick = (e: MouseEvent): void => {
     const target = e.target as HTMLImageElement;
@@ -137,15 +158,18 @@ class LightZoom implements ILightZoom {
 
   /**
    * Обработчик события по клику на кнопку "закрыть".
-   * @privat
+   * @private
    */
   private _onCloseClick = (e: MouseEvent): void => {
-    this.closeModal();
+    const isImg = this._isClickOnImg(e.target as any);
+    if (!isImg) {
+      this.closeModal();
+    }
   }
 
   /**
    * Обработчик события по клику на Escape или Enter.
-   * @privat
+   * @private
    */
   private _onKeyClose = (e: KeyboardEvent): void => {
     if (e.keyCode === Key.Esc || e.keyCode === Key.Enter) {
